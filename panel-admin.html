@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Admin — Volleyball Bulls</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0D0F14; --surface:#171B22; --surface-2:#1F242D;
+    --bull-red:#E8432A; --court-gold:#F2B441; --chalk:#F3F1EA; --mist:#8B92A0; --line:#2A303A;
+    --ok:#4FAE7C;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--ink); color:var(--chalk); font-family:'Inter',sans-serif;}
+
+  /* Login */
+  #loginScreen{
+    min-height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px; padding:20px;
+  }
+  .brand-mark{width:44px; height:44px; border-radius:11px; background:var(--bull-red); display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:22px; color:var(--ink);}
+  #loginScreen h1{font-family:'Anton',sans-serif; text-transform:uppercase; font-size:24px; margin:4px 0;}
+  #loginScreen input{
+    width:260px; padding:12px 14px; border-radius:10px; border:1px solid var(--line);
+    background:var(--surface); color:var(--chalk); font-size:15px; text-align:center;
+  }
+  #loginScreen button{margin-top:6px; padding:12px 22px; border-radius:10px; border:none; background:var(--bull-red); color:var(--chalk); font-weight:700; cursor:pointer; width:260px;}
+  #loginError{color:var(--bull-red); font-size:13px; height:14px;}
+
+  /* App shell */
+  #app{display:none; min-height:100vh;}
+  .sidebar{
+    width:210px; background:var(--surface); border-right:1px solid var(--line);
+    padding:20px 14px; position:fixed; top:0; bottom:0; left:0; display:flex; flex-direction:column; gap:4px;
+  }
+  .sidebar .brand{display:flex; align-items:center; gap:9px; margin-bottom:22px;}
+  .sidebar .brand-title{font-family:'Anton',sans-serif; font-size:15px; text-transform:uppercase;}
+  .nav-item{
+    padding:11px 12px; border-radius:9px; color:var(--mist); font-size:14px; font-weight:600; cursor:pointer;
+  }
+  .nav-item.active{background:rgba(232,67,42,0.14); color:var(--chalk);}
+  .nav-item:hover{color:var(--chalk);}
+
+  main{margin-left:210px; padding:28px 32px; max-width:1100px;}
+  .page{display:none;}
+  .page.active{display:block;}
+  .page-title{font-family:'Anton',sans-serif; text-transform:uppercase; font-size:26px; margin:0 0 4px;}
+  .page-sub{color:var(--mist); font-size:13.5px; margin:0 0 20px;}
+
+  .toolbar{display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;}
+  .toolbar input, .toolbar select{
+    background:var(--surface); border:1px solid var(--line); border-radius:9px; padding:9px 12px; color:var(--chalk); font-size:14px;
+  }
+  .toolbar input{flex:1; min-width:180px;}
+
+  table{width:100%; border-collapse:collapse; font-size:13.5px;}
+  th{text-align:left; color:var(--mist); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; padding:10px 12px; border-bottom:1px solid var(--line);}
+  td{padding:11px 12px; border-bottom:1px solid var(--line); vertical-align:middle;}
+  tr:hover td{background:var(--surface);}
+  .row-photo{width:32px; height:32px; border-radius:7px; object-fit:cover; background:var(--surface-2);}
+  .pill{display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700;}
+  .pill-pagado{background:rgba(79,174,124,0.15); color:var(--ok);}
+  .pill-pendiente{background:rgba(242,180,65,0.15); color:var(--court-gold);}
+  .link-btn{color:var(--court-gold); cursor:pointer; font-weight:600; font-size:13px;}
+
+  .modal-bg{display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:10; align-items:flex-start; justify-content:center; overflow:auto; padding:40px 16px;}
+  .modal{background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:24px; width:100%; max-width:520px;}
+  .modal-close{float:right; color:var(--mist); cursor:pointer; font-size:20px;}
+  .carnet-big{
+    display:flex; gap:14px; align-items:center; background:var(--surface-2); border:1px solid var(--court-gold);
+    border-radius:14px; padding:16px; margin:14px 0 20px;
+  }
+  .carnet-big img{width:64px; height:64px; border-radius:10px; object-fit:cover; background:var(--ink);}
+  .carnet-big .name{font-weight:700; font-size:16px;}
+  .carnet-big .id{font-family:'JetBrains Mono',monospace; color:var(--court-gold); font-size:12px; margin-top:2px;}
+  .detail-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px 16px; font-size:13.5px; margin-bottom:18px;}
+  .detail-grid .k{color:var(--mist); font-size:11.5px; text-transform:uppercase; letter-spacing:.04em;}
+  .detail-grid .v{margin-top:2px;}
+  .modal-section-title{font-family:'Anton',sans-serif; font-size:15px; text-transform:uppercase; margin:18px 0 10px;}
+  .mini-form{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;}
+  .mini-form input, .mini-form select{background:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 10px; color:var(--chalk); font-size:13px; flex:1; min-width:110px;}
+  .mini-form button{background:var(--bull-red); border:none; border-radius:8px; padding:8px 14px; color:var(--chalk); font-weight:700; cursor:pointer; font-size:13px;}
+  .log-item{padding:8px 0; border-bottom:1px solid var(--line); font-size:13px;}
+  .log-item .meta{color:var(--mist); font-size:11px;}
+
+  .empty{color:var(--mist); font-size:13.5px; padding:20px 0;}
+  .loading{color:var(--mist); font-size:13.5px;}
+
+  /* Carnet imprimible */
+  .carnet-print{
+    width:340px; border-radius:16px; overflow:hidden; margin:0 auto;
+    background:linear-gradient(160deg, var(--surface-2), var(--ink));
+    border:1px solid var(--line); font-family:'Inter',sans-serif; color:var(--chalk);
+  }
+  .carnet-print .head{background:var(--bull-red); padding:10px 16px; display:flex; align-items:center; gap:8px;}
+  .carnet-print .head .mark{width:22px; height:22px; border-radius:6px; background:var(--ink); color:var(--bull-red); display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:13px;}
+  .carnet-print .head .t{font-family:'Anton',sans-serif; font-size:13px; letter-spacing:.05em; text-transform:uppercase; color:var(--chalk);}
+  .carnet-print .body{padding:16px; display:flex; gap:14px; align-items:center;}
+  .carnet-print .body img{width:66px; height:66px; border-radius:10px; object-fit:cover; border:1.5px solid var(--court-gold); background:var(--surface);}
+  .carnet-print .name{font-weight:700; font-size:15px; line-height:1.25;}
+  .carnet-print .id{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--court-gold); margin-top:3px;}
+  .carnet-print .nivel{font-size:11.5px; color:var(--mist); margin-top:2px; text-transform:uppercase; letter-spacing:.03em;}
+  .carnet-print .qr-wrap{background:var(--chalk); padding:14px; display:flex; align-items:center; justify-content:center; gap:12px;}
+  .carnet-print .qr-wrap .hint{font-size:10.5px; color:var(--ink); max-width:110px; line-height:1.4; font-weight:600;}
+  #qrCanvas{background:#fff; padding:4px; border-radius:6px;}
+  .print-actions{display:flex; gap:10px; justify-content:center; margin-top:18px;}
+  .print-actions button{background:var(--bull-red); color:var(--chalk); border:none; border-radius:9px; padding:10px 18px; font-weight:700; cursor:pointer; font-size:13.5px;}
+  .print-actions button.ghost{background:transparent; border:1px solid var(--line); color:var(--mist);}
+  @media print{
+    body *{visibility:hidden;}
+    #carnetPrintArea, #carnetPrintArea *{visibility:visible;}
+    #carnetPrintArea{position:fixed; top:30px; left:0; right:0;}
+    .print-actions{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="brand-mark">B</div>
+  <h1>Panel Volleyball Bulls</h1>
+  <input type="password" id="passwordInput" placeholder="Contraseña de administrador">
+  <button id="loginBtn">Entrar</button>
+  <div id="loginError"></div>
+</div>
+
+<div id="app">
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">B</div>
+      <div class="brand-title">Bulls Admin</div>
+    </div>
+    <div class="nav-item active" data-page="jugadores">Jugadores</div>
+    <div class="nav-item" data-page="pagos">Pagos</div>
+    <div class="nav-item" data-page="seguimiento">Seguimiento</div>
+  </div>
+
+  <main>
+    <div class="page active" id="page-jugadores">
+      <div class="page-title">Jugadores</div>
+      <p class="page-sub">Todos los inscritos en la academia.</p>
+      <div class="toolbar">
+        <input type="text" id="searchJugador" placeholder="Buscar por nombre o cédula...">
+        <select id="filterNivel"><option value="">Todos los niveles</option></select>
+        <select id="filterPago"><option value="">Todos los pagos</option><option>Pagado</option><option>Pendiente</option></select>
+      </div>
+      <div id="jugadoresTableWrap" class="loading">Cargando...</div>
+    </div>
+
+    <div class="page" id="page-pagos">
+      <div class="page-title">Pagos</div>
+      <p class="page-sub">Historial de pagos registrados.</p>
+      <div id="pagosTableWrap" class="loading">Cargando...</div>
+    </div>
+
+    <div class="page" id="page-seguimiento">
+      <div class="page-title">Seguimiento</div>
+      <p class="page-sub">Notas de avance físico, técnico y asistencia.</p>
+      <div id="seguimientoTableWrap" class="loading">Cargando...</div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <span class="modal-close" id="modalClose">✕</span>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+// ⚠️ Pega aquí la misma URL de tu Apps Script publicado como "Aplicación web"
+const API_URL = "PEGA_AQUI_TU_URL_DE_APPS_SCRIPT";
+// ⚠️ Pega aquí la URL donde publiques ficha.html (por ejemplo tu link de GitHub Pages)
+const FICHA_URL = "PEGA_AQUI_LA_URL_DE_FICHA_HTML";
+
+let PASSWORD = '';
+let jugadores = [], pagos = [], seguimiento = [];
+
+document.getElementById('loginBtn').addEventListener('click', login);
+document.getElementById('passwordInput').addEventListener('keydown', e=>{ if(e.key==='Enter') login(); });
+
+function login(){
+  PASSWORD = document.getElementById('passwordInput').value;
+  document.getElementById('loginError').textContent = 'Verificando...';
+  fetchAll().then(()=>{
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('app').style.display='block';
+  }).catch(err=>{
+    document.getElementById('loginError').textContent = 'Contraseña incorrecta o error de conexión.';
+  });
+}
+
+function fetchAll(){
+  return Promise.all([
+    fetch(`${API_URL}?action=listarJugadores&password=${encodeURIComponent(PASSWORD)}`).then(r=>r.json()),
+    fetch(`${API_URL}?action=listarPagos&password=${encodeURIComponent(PASSWORD)}`).then(r=>r.json()),
+    fetch(`${API_URL}?action=listarSeguimiento&password=${encodeURIComponent(PASSWORD)}`).then(r=>r.json())
+  ]).then(([rj, rp, rs])=>{
+    if(!rj.ok) throw new Error(rj.error);
+    jugadores = rj.data; pagos = rp.data || []; seguimiento = rs.data || [];
+    renderNivelFilter();
+    renderJugadores();
+    renderPagos();
+    renderSeguimiento();
+  });
+}
+
+// Navegación
+document.querySelectorAll('.nav-item').forEach(item=>{
+  item.addEventListener('click', ()=>{
+    document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('page-'+item.dataset.page).classList.add('active');
+  });
+});
+
+function renderNivelFilter(){
+  const niveles = [...new Set(jugadores.map(j=>j['Nivel Actual']).filter(Boolean))];
+  const sel = document.getElementById('filterNivel');
+  niveles.forEach(n=>{
+    const opt = document.createElement('option'); opt.textContent = n; sel.appendChild(opt);
+  });
+}
+
+function renderJugadores(){
+  const search = document.getElementById('searchJugador').value.toLowerCase();
+  const nivel = document.getElementById('filterNivel').value;
+  const pagoFilter = document.getElementById('filterPago').value;
+
+  const filtered = jugadores.filter(j=>{
+    const matchSearch = !search || (j['Nombre Completo']||'').toLowerCase().includes(search) || String(j['Cedula']||'').includes(search);
+    const matchNivel = !nivel || j['Nivel Actual']===nivel;
+    const matchPago = !pagoFilter || j['Estado Pago']===pagoFilter;
+    return matchSearch && matchNivel && matchPago;
+  });
+
+  const wrap = document.getElementById('jugadoresTableWrap');
+  if(filtered.length===0){ wrap.innerHTML = '<div class="empty">No hay jugadores que coincidan.</div>'; return; }
+
+  wrap.innerHTML = `<table><thead><tr>
+    <th></th><th>Nombre</th><th>ID</th><th>Nivel</th><th>Edad</th><th>Pago</th><th></th>
+  </tr></thead><tbody>${filtered.map(j=>`
+    <tr>
+      <td><img class="row-photo" src="${j['Foto URL']||''}" onerror="this.style.visibility='hidden'"></td>
+      <td>${j['Nombre Completo']||''}</td>
+      <td style="font-family:'JetBrains Mono',monospace; color:var(--court-gold); font-size:12px;">${j['ID']||''}</td>
+      <td>${j['Nivel Actual']||''}</td>
+      <td>${j['Edad']||''}</td>
+      <td><span class="pill ${j['Estado Pago']==='Pagado'?'pill-pagado':'pill-pendiente'}">${j['Estado Pago']||'Pendiente'}</span></td>
+      <td><span class="link-btn" onclick="openJugador('${j['ID']}')">Ver →</span></td>
+    </tr>`).join('')}</tbody></table>`;
+}
+['searchJugador','filterNivel','filterPago'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', renderJugadores);
+  document.getElementById(id).addEventListener('change', renderJugadores);
+});
+
+function renderPagos(){
+  const wrap = document.getElementById('pagosTableWrap');
+  if(pagos.length===0){ wrap.innerHTML = '<div class="empty">Aún no hay pagos registrados.</div>'; return; }
+  wrap.innerHTML = `<table><thead><tr><th>Fecha</th><th>Jugador</th><th>Monto</th><th>Concepto</th><th>Método</th></tr></thead><tbody>
+    ${pagos.map(p=>`<tr><td>${fmtDate(p['Fecha'])}</td><td>${p['Nombre Jugador']||''}</td><td>₡${p['Monto']||''}</td><td>${p['Concepto']||''}</td><td>${p['Metodo']||''}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+function renderSeguimiento(){
+  const wrap = document.getElementById('seguimientoTableWrap');
+  if(seguimiento.length===0){ wrap.innerHTML = '<div class="empty">Aún no hay notas de seguimiento.</div>'; return; }
+  wrap.innerHTML = `<table><thead><tr><th>Fecha</th><th>Jugador</th><th>Categoría</th><th>Nota</th></tr></thead><tbody>
+    ${seguimiento.map(s=>`<tr><td>${fmtDate(s['Fecha'])}</td><td>${s['Nombre Jugador']||''}</td><td>${s['Categoria']||''}</td><td>${s['Nota']||''}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+function fmtDate(d){
+  if(!d) return '';
+  const date = new Date(d);
+  if(isNaN(date)) return d;
+  return date.toLocaleDateString('es-CR', {day:'2-digit', month:'2-digit', year:'numeric'});
+}
+
+function openJugador(id){
+  const j = jugadores.find(x=>x['ID']===id);
+  if(!j) return;
+  const pagosJ = pagos.filter(p=>p['ID Jugador']===id);
+  const segJ = seguimiento.filter(s=>s['ID Jugador']===id);
+
+  document.getElementById('modalContent').innerHTML = `
+    <div class="carnet-big">
+      <img src="${j['Foto URL']||''}" onerror="this.style.visibility='hidden'">
+      <div style="flex:1;">
+        <div class="name">${j['Nombre Completo']||''}</div>
+        <div class="id">${j['ID']} · ${j['Nivel Actual']||''}</div>
+      </div>
+      <span class="link-btn" onclick="verCarnet('${id}')">Ver carnet →</span>
+    </div>
+    <div class="detail-grid">
+      <div><div class="k">Cédula</div><div class="v">${j['Cedula']||''}</div></div>
+      <div><div class="k">Edad / Sexo</div><div class="v">${j['Edad']||''} · ${j['Sexo']||''}</div></div>
+      <div><div class="k">WhatsApp</div><div class="v">${j['WhatsApp']||''}</div></div>
+      <div><div class="k">Correo</div><div class="v">${j['Correo']||''}</div></div>
+      <div><div class="k">Contacto emergencia</div><div class="v">${j['Contacto Emergencia']||''} (${j['Parentesco']||''})</div></div>
+      <div><div class="k">Tel. emergencia</div><div class="v">${j['Telefono Emergencia']||''}</div></div>
+      <div><div class="k">Condición médica</div><div class="v">${j['Condicion Medica']||'No'} ${j['Detalle Condicion Medica']?('— '+j['Detalle Condicion Medica']):''}</div></div>
+      <div><div class="k">Lesión reciente</div><div class="v">${j['Lesion Reciente']||'No'} ${j['Detalle Lesion']?('— '+j['Detalle Lesion']):''}</div></div>
+    </div>
+
+    <div class="modal-section-title">Estado de pago</div>
+    <div class="mini-form">
+      <select id="estadoPagoSel">
+        <option value="Pendiente" ${j['Estado Pago']==='Pendiente'?'selected':''}>Pendiente</option>
+        <option value="Pagado" ${j['Estado Pago']==='Pagado'?'selected':''}>Pagado</option>
+      </select>
+      <button onclick="actualizarEstadoPago('${id}')">Guardar</button>
+    </div>
+
+    <div class="modal-section-title">Registrar pago</div>
+    <div class="mini-form">
+      <input type="number" id="montoInput" placeholder="Monto ₡">
+      <input type="text" id="conceptoInput" placeholder="Concepto (ej. Mensualidad)">
+      <select id="metodoInput"><option>SINPE Móvil</option><option>Efectivo</option></select>
+      <button onclick="registrarPago('${id}', '${(j['Nombre Completo']||'').replace(/'/g,"")}')">Agregar</button>
+    </div>
+    ${pagosJ.map(p=>`<div class="log-item">₡${p['Monto']} — ${p['Concepto']} <div class="meta">${fmtDate(p['Fecha'])} · ${p['Metodo']}</div></div>`).join('') || '<div class="empty">Sin pagos registrados.</div>'}
+
+    <div class="modal-section-title">Seguimiento</div>
+    <div class="mini-form">
+      <select id="categoriaInput"><option>Físico</option><option>Técnico</option><option>Asistencia</option></select>
+      <input type="text" id="notaInput" placeholder="Nota de avance...">
+      <button onclick="registrarSeguimiento('${id}', '${(j['Nombre Completo']||'').replace(/'/g,"")}')">Agregar</button>
+    </div>
+    ${segJ.map(s=>`<div class="log-item">${s['Categoria']}: ${s['Nota']} <div class="meta">${fmtDate(s['Fecha'])}</div></div>`).join('') || '<div class="empty">Sin notas de seguimiento.</div>'}
+  `;
+  document.getElementById('modalBg').style.display = 'flex';
+}
+
+document.getElementById('modalClose').addEventListener('click', ()=>{ document.getElementById('modalBg').style.display='none'; });
+document.getElementById('modalBg').addEventListener('click', (e)=>{ if(e.target.id==='modalBg') document.getElementById('modalBg').style.display='none'; });
+
+function verCarnet(id){
+  const j = jugadores.find(x=>x['ID']===id);
+  if(!j) return;
+  if(!j['Token']){
+    alert('Este jugador no tiene token todavía. Ejecuta "generarTokensFaltantes" una vez en Apps Script y vuelve a intentar.');
+    return;
+  }
+  const url = `${FICHA_URL}?id=${encodeURIComponent(j['ID'])}&token=${encodeURIComponent(j['Token'])}`;
+
+  document.getElementById('modalContent').innerHTML = `
+    <div id="carnetPrintArea">
+      <div class="carnet-print">
+        <div class="head"><div class="mark">B</div><div class="t">Volleyball Bulls</div></div>
+        <div class="body">
+          <img src="${j['Foto URL']||''}" onerror="this.style.visibility='hidden'">
+          <div>
+            <div class="name">${j['Nombre Completo']||''}</div>
+            <div class="id">${j['ID']}</div>
+            <div class="nivel">${j['Nivel Actual']||''}</div>
+          </div>
+        </div>
+        <div class="qr-wrap">
+          <div id="qrCanvas"></div>
+          <div class="hint">Escanea en caso de emergencia para ver contacto y datos médicos.</div>
+        </div>
+      </div>
+      <div class="print-actions">
+        <button onclick="window.print()">Imprimir carnet</button>
+        <button class="ghost" onclick="openJugador('${id}')">← Volver</button>
+      </div>
+    </div>
+  `;
+  new QRCode(document.getElementById('qrCanvas'), { text: url, width:110, height:110, colorDark:'#0D0F14', colorLight:'#ffffff' });
+  document.getElementById('modalBg').style.display = 'flex';
+}
+
+function actualizarEstadoPago(id){
+  const estado = document.getElementById('estadoPagoSel').value;
+  postAction('actualizarEstadoPago', { idJugador:id, estado }).then(()=>fetchAll()).then(()=>{ document.getElementById('modalBg').style.display='none'; });
+}
+
+function registrarPago(id, nombre){
+  const monto = document.getElementById('montoInput').value;
+  const concepto = document.getElementById('conceptoInput').value;
+  const metodo = document.getElementById('metodoInput').value;
+  if(!monto || !concepto) return alert('Completa monto y concepto.');
+  postAction('registrarPago', { idJugador:id, nombreJugador:nombre, monto, concepto, metodo }).then(()=>fetchAll()).then(()=>openJugador(id));
+}
+
+function registrarSeguimiento(id, nombre){
+  const categoria = document.getElementById('categoriaInput').value;
+  const nota = document.getElementById('notaInput').value;
+  if(!nota) return alert('Escribe una nota.');
+  postAction('registrarSeguimiento', { idJugador:id, nombreJugador:nombre, categoria, nota, registradoPor:'Admin' }).then(()=>fetchAll()).then(()=>openJugador(id));
+}
+
+function postAction(action, data){
+  return fetch(API_URL, { method:'POST', body: JSON.stringify({ action, password: PASSWORD, data }) }).then(r=>r.json());
+}
+</script>
+</body>
+</html>

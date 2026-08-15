@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inscripción — Volleyball Bulls</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0D0F14;
+    --surface:#171B22;
+    --surface-2:#1F242D;
+    --bull-red:#E8432A;
+    --bull-red-dim:#7A2A1F;
+    --court-gold:#F2B441;
+    --chalk:#F3F1EA;
+    --mist:#8B92A0;
+    --line:#2A303A;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--chalk);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background:
+      radial-gradient(circle at 15% -10%, rgba(232,67,42,0.14), transparent 45%),
+      radial-gradient(circle at 100% 10%, rgba(242,180,65,0.08), transparent 40%);
+    pointer-events:none;
+    z-index:0;
+  }
+  .wrap{max-width:640px; margin:0 auto; padding:28px 20px 80px; position:relative; z-index:1;}
+
+  .brand{display:flex; align-items:center; gap:10px; margin-bottom:6px;}
+  .brand-mark{
+    width:34px; height:34px; border-radius:9px;
+    background:var(--bull-red);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Anton',sans-serif; font-size:18px; color:var(--ink);
+    flex-shrink:0;
+  }
+  .eyebrow{
+    font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--court-gold); font-weight:600;
+  }
+  h1{
+    font-family:'Anton',sans-serif;
+    font-weight:400;
+    font-size:38px;
+    line-height:0.95;
+    letter-spacing:0.01em;
+    margin:10px 0 4px;
+    text-transform:uppercase;
+  }
+  .sub{color:var(--mist); font-size:14.5px; margin:0 0 24px; line-height:1.5;}
+
+  /* Progress */
+  .steps{display:flex; align-items:center; gap:6px; margin-bottom:22px;}
+  .steps .dot{width:8px; height:8px; border-radius:50%; background:var(--line); flex-shrink:0; transition:background .25s;}
+  .steps .dot.active{background:var(--bull-red); width:22px; border-radius:5px;}
+  .steps .dot.done{background:var(--court-gold);}
+  .step-label{font-size:12px; color:var(--mist); margin-bottom:18px; text-transform:uppercase; letter-spacing:.08em; font-weight:600;}
+
+  /* Carnet preview */
+  .carnet{
+    position:relative;
+    border-radius:16px;
+    padding:18px 20px;
+    background:linear-gradient(135deg, var(--surface-2), var(--surface));
+    border:1px solid var(--line);
+    display:flex; align-items:center; gap:14px;
+    margin-bottom:26px;
+    overflow:hidden;
+  }
+  .carnet::after{
+    content:"BULLS";
+    position:absolute; right:-6px; bottom:-14px;
+    font-family:'Anton',sans-serif; font-size:52px; color:rgba(255,255,255,0.03);
+    letter-spacing:2px;
+  }
+  .carnet-photo{
+    width:56px; height:56px; border-radius:10px; background:var(--ink);
+    border:1.5px solid var(--court-gold);
+    flex-shrink:0; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--mist); font-size:10px; text-align:center;
+  }
+  .carnet-photo img{width:100%; height:100%; object-fit:cover;}
+  .carnet-info{min-width:0;}
+  .carnet-name{font-weight:700; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .carnet-meta{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--court-gold); margin-top:3px;}
+  .carnet-tag{font-size:10px; color:var(--mist); text-transform:uppercase; letter-spacing:.08em; margin-top:2px;}
+
+  /* Form */
+  fieldset{border:none; margin:0; padding:0;}
+  .field{margin-bottom:16px;}
+  label{display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:var(--chalk);}
+  label .opt{color:var(--mist); font-weight:400;}
+  input[type=text], input[type=tel], input[type=email], input[type=date], input[type=number], select, textarea{
+    width:100%;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px 13px;
+    color:var(--chalk);
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    outline:none;
+    transition:border-color .15s;
+  }
+  input:focus, select:focus, textarea:focus{border-color:var(--bull-red);}
+  textarea{resize:vertical; min-height:70px;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  @media(max-width:480px){.row2{grid-template-columns:1fr;}}
+
+  .choice-group{display:flex; gap:10px;}
+  .choice{
+    flex:1; text-align:center; padding:11px; border-radius:10px;
+    border:1px solid var(--line); background:var(--surface);
+    cursor:pointer; font-size:14px; font-weight:600; color:var(--mist);
+    transition:all .15s; user-select:none;
+  }
+  .choice.selected{border-color:var(--bull-red); background:rgba(232,67,42,0.12); color:var(--chalk);}
+
+  .photo-drop{
+    border:1.5px dashed var(--line); border-radius:12px; padding:22px;
+    text-align:center; cursor:pointer; color:var(--mist); font-size:13.5px;
+    transition:border-color .15s;
+  }
+  .photo-drop:hover{border-color:var(--court-gold);}
+  input[type=file]{display:none;}
+
+  .check-row{display:flex; align-items:flex-start; gap:10px; padding:12px; border:1px solid var(--line); border-radius:10px; margin-bottom:10px; background:var(--surface);}
+  .check-row input{margin-top:3px; accent-color:var(--bull-red); width:16px; height:16px; flex-shrink:0;}
+  .check-row span{font-size:13.5px; color:var(--mist); line-height:1.45;}
+
+  .nav-btns{display:flex; justify-content:space-between; margin-top:26px; gap:12px;}
+  button{
+    font-family:'Inter',sans-serif; font-weight:700; font-size:14.5px;
+    border:none; border-radius:10px; padding:13px 22px; cursor:pointer;
+    transition:transform .12s, opacity .12s;
+  }
+  button:active{transform:scale(0.98);}
+  .btn-primary{background:var(--bull-red); color:var(--chalk); flex:1;}
+  .btn-ghost{background:transparent; color:var(--mist); border:1px solid var(--line);}
+  .btn-primary:disabled{opacity:0.5; cursor:not-allowed;}
+
+  .section-title{font-family:'Anton',sans-serif; font-size:20px; text-transform:uppercase; letter-spacing:.02em; margin:0 0 14px;}
+
+  .payment-box{
+    background:var(--surface-2); border:1px solid var(--court-gold); border-radius:12px;
+    padding:16px; margin-bottom:18px; font-size:14px; color:var(--chalk); line-height:1.6;
+  }
+  .payment-box b{color:var(--court-gold); font-family:'JetBrains Mono',monospace;}
+
+  .final{text-align:center; padding:40px 10px;}
+  .final .brand-mark{margin:0 auto 16px; width:52px; height:52px; font-size:26px;}
+  .final h2{font-family:'Anton',sans-serif; text-transform:uppercase; font-size:28px; margin:0 0 10px;}
+  .final p{color:var(--mist); font-size:14.5px; line-height:1.6; max-width:420px; margin:0 auto;}
+  .final .warn{color:var(--court-gold); font-size:13px; margin-top:16px;}
+
+  .error-msg{color:var(--bull-red); font-size:13px; margin-top:6px; display:none;}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">
+    <div class="brand-mark">B</div>
+    <span class="eyebrow">Academia de Volleyball</span>
+  </div>
+  <h1>Inscripción<br>2026</h1>
+  <p class="sub">Completa tus datos para asegurar tu cupo en Volleyball Bulls. Toma menos de 5 minutos.</p>
+
+  <div id="stepper">
+    <div class="steps" id="stepDots"></div>
+    <div class="step-label" id="stepLabel"></div>
+  </div>
+
+  <div class="carnet" id="carnetPreview">
+    <div class="carnet-photo" id="carnetPhoto">FOTO</div>
+    <div class="carnet-info">
+      <div class="carnet-name" id="carnetName">Nombre del jugador</div>
+      <div class="carnet-meta" id="carnetId">VB-0000</div>
+      <div class="carnet-tag" id="carnetNivel">Nivel — Sexo</div>
+    </div>
+  </div>
+
+  <form id="regForm">
+
+    <!-- PASO 1: Jugador -->
+    <div class="step" data-step="1">
+      <div class="section-title">Datos del jugador</div>
+
+      <div class="field">
+        <label>Nombre completo</label>
+        <input type="text" id="nombreCompleto" required placeholder="Nombre, segundo nombre, apellido, apellido">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Cédula</label>
+          <input type="text" id="cedula" required placeholder="0-0000-0000">
+        </div>
+        <div class="field">
+          <label>Fecha de nacimiento</label>
+          <input type="date" id="fechaNacimiento" required>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Edad</label>
+          <input type="number" id="edad" required min="4" max="99">
+        </div>
+        <div class="field">
+          <label>Sexo</label>
+          <select id="sexo" required>
+            <option value="">Selecciona</option>
+            <option>Femenino</option>
+            <option>Masculino</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Foto <span class="opt">(para el carnet virtual)</span></label>
+        <div class="photo-drop" id="photoDrop">Toca para tomar o subir una foto</div>
+        <input type="file" id="fotoInput" accept="image/*" capture="environment">
+      </div>
+    </div>
+
+    <!-- PASO 2: Contacto -->
+    <div class="step hidden" data-step="2">
+      <div class="section-title">Contacto</div>
+      <div class="field">
+        <label>WhatsApp / Teléfono</label>
+        <input type="tel" id="whatsapp" required placeholder="8888-8888">
+      </div>
+      <div class="field">
+        <label>Correo</label>
+        <input type="email" id="correo" required>
+      </div>
+      <div class="field">
+        <label>Dirección de residencia</label>
+        <textarea id="direccion" required></textarea>
+      </div>
+
+      <div class="section-title" style="margin-top:22px;">Contacto de emergencia</div>
+      <div class="field">
+        <label>Nombre del contacto</label>
+        <input type="text" id="contactoEmergencia" required>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Parentesco</label>
+          <select id="parentesco" required>
+            <option value="">Selecciona</option>
+            <option>Madre</option>
+            <option>Padre</option>
+            <option>Tutor(a)</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Teléfono de emergencia</label>
+          <input type="tel" id="telefonoEmergencia" required placeholder="8888-8888">
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 3: Historial -->
+    <div class="step hidden" data-step="3">
+      <div class="section-title">Historial deportivo y médico</div>
+      <div class="field">
+        <label>¿Ha practicado volleyball antes?</label>
+        <div class="choice-group" data-target="experienciaPrevia">
+          <div class="choice" data-value="Si">Sí</div>
+          <div class="choice" data-value="No">No</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Nivel actual</label>
+        <select id="nivelActual" required>
+          <option value="">Selecciona</option>
+          <option>Principiante</option>
+          <option>Intermedio</option>
+          <option>Avanzado</option>
+          <option>Competitivo</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>¿Presenta alguna condición médica?</label>
+        <div class="choice-group" data-target="condicionMedica">
+          <div class="choice" data-value="Si">Sí</div>
+          <div class="choice" data-value="No">No</div>
+        </div>
+      </div>
+      <div class="field hidden" id="detalleCondicionWrap">
+        <label>Especifique la condición médica</label>
+        <textarea id="detalleCondicionMedica"></textarea>
+      </div>
+      <div class="field">
+        <label>¿Ha presentado alguna lesión recientemente?</label>
+        <div class="choice-group" data-target="lesionReciente">
+          <div class="choice" data-value="Si">Sí</div>
+          <div class="choice" data-value="No">No</div>
+        </div>
+      </div>
+      <div class="field hidden" id="detalleLesionWrap">
+        <label>Especifique la lesión</label>
+        <textarea id="detalleLesion"></textarea>
+      </div>
+    </div>
+
+    <!-- PASO 4: Autorizaciones -->
+    <div class="step hidden" data-step="4">
+      <div class="section-title">Autorizaciones</div>
+      <label class="check-row">
+        <input type="checkbox" id="aceptaCondiciones" required>
+        <span>Acepto las condiciones de participación en la academia.</span>
+      </label>
+      <label class="check-row">
+        <input type="checkbox" id="aceptaContrato" required>
+        <span>Declaro que he leído y acepto el contrato de ingreso y la exoneración de responsabilidades.</span>
+      </label>
+    </div>
+
+    <!-- PASO 5: Pago -->
+    <div class="step hidden" data-step="5">
+      <div class="section-title">Pago</div>
+      <div class="payment-box">
+        Realiza el pago vía SINPE Móvil al <b>8322-6001</b> o en efectivo, y luego indícanos cómo pagaste.
+      </div>
+      <div class="field">
+        <label>¿Cómo realizaste el pago?</label>
+        <select id="metodoPago" required>
+          <option value="">Selecciona</option>
+          <option>SINPE Móvil</option>
+          <option>Efectivo</option>
+          <option>Pendiente</option>
+        </select>
+      </div>
+    </div>
+
+  </form>
+
+  <div class="nav-btns" id="navBtns">
+    <button type="button" class="btn-ghost" id="btnBack">Atrás</button>
+    <button type="button" class="btn-primary" id="btnNext">Siguiente →</button>
+  </div>
+
+  <!-- Pantalla final -->
+  <div class="final hidden" id="finalScreen">
+    <div class="brand-mark">B</div>
+    <h2>¡Bienvenido(a) a Volleyball Bulls!</h2>
+    <p>Estás a un paso de formar parte de este proyecto. Tu registro fue recibido correctamente.</p>
+    <p class="warn">⚠️ Los espacios son limitados y se asignan por orden de confirmación de pago.</p>
+  </div>
+
+</div>
+
+<script>
+// ⚠️ Pega aquí la URL de tu Apps Script publicado como "Aplicación web"
+const API_URL = "https://docs.google.com/spreadsheets/d/1-expgtY4aX2QMmwDyUrqjLS9DmQr4otE2osTCYamWoM/edit?gid=0#gid=0";
+
+const steps = Array.from(document.querySelectorAll('.step'));
+const stepDots = document.getElementById('stepDots');
+const stepLabel = document.getElementById('stepLabel');
+const labels = ['Jugador','Contacto','Historial','Autorizaciones','Pago'];
+let current = 0;
+let fotoBase64 = '';
+
+const state = { experienciaPrevia:'', condicionMedica:'', lesionReciente:'' };
+
+labels.forEach((_, i) => {
+  const dot = document.createElement('div');
+  dot.className = 'dot';
+  stepDots.appendChild(dot);
+});
+
+function renderStepper(){
+  document.querySelectorAll('.dot').forEach((d,i)=>{
+    d.classList.toggle('active', i===current);
+    d.classList.toggle('done', i<current);
+  });
+  stepLabel.textContent = `Paso ${current+1} de ${steps.length} — ${labels[current]}`;
+}
+renderStepper();
+
+document.getElementById('btnBack').addEventListener('click', ()=>{
+  if(current===0) return;
+  steps[current].classList.add('hidden');
+  current--;
+  steps[current].classList.remove('hidden');
+  renderStepper();
+  document.getElementById('btnBack').style.visibility = current===0 ? 'hidden':'visible';
+});
+document.getElementById('btnBack').style.visibility='hidden';
+
+document.getElementById('btnNext').addEventListener('click', ()=>{
+  if(!validateStep(current)) return;
+  if(current === steps.length-1){ submitForm(); return; }
+  steps[current].classList.add('hidden');
+  current++;
+  steps[current].classList.remove('hidden');
+  renderStepper();
+  document.getElementById('btnBack').style.visibility='visible';
+  document.getElementById('btnNext').textContent = current===steps.length-1 ? 'Enviar inscripción' : 'Siguiente →';
+});
+
+function validateStep(i){
+  const stepEl = steps[i];
+  const inputs = stepEl.querySelectorAll('input[required], select[required], textarea[required]');
+  for(const el of inputs){
+    if(!el.value){ el.focus(); el.style.borderColor='var(--bull-red)'; return false; }
+  }
+  if(i===3){
+    if(!document.getElementById('aceptaCondiciones').checked || !document.getElementById('aceptaContrato').checked){
+      alert('Debes aceptar las condiciones y el contrato para continuar.');
+      return false;
+    }
+  }
+  return true;
+}
+
+// choice groups (Si/No)
+document.querySelectorAll('.choice-group').forEach(group=>{
+  const target = group.dataset.target;
+  group.querySelectorAll('.choice').forEach(choice=>{
+    choice.addEventListener('click', ()=>{
+      group.querySelectorAll('.choice').forEach(c=>c.classList.remove('selected'));
+      choice.classList.add('selected');
+      state[target] = choice.dataset.value;
+      if(target==='condicionMedica'){
+        document.getElementById('detalleCondicionWrap').classList.toggle('hidden', choice.dataset.value!=='Si');
+      }
+      if(target==='lesionReciente'){
+        document.getElementById('detalleLesionWrap').classList.toggle('hidden', choice.dataset.value!=='Si');
+      }
+    });
+  });
+});
+
+// photo
+const photoDrop = document.getElementById('photoDrop');
+const fotoInput = document.getElementById('fotoInput');
+photoDrop.addEventListener('click', ()=>fotoInput.click());
+fotoInput.addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const canvas = document.createElement('canvas');
+      const maxDim = 500;
+      let w = img.width, h = img.height;
+      if(w>h && w>maxDim){ h*=maxDim/w; w=maxDim; }
+      else if(h>maxDim){ w*=maxDim/h; h=maxDim; }
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      fotoBase64 = canvas.toDataURL('image/jpeg',0.75);
+      photoDrop.textContent = 'Foto lista ✓';
+      document.getElementById('carnetPhoto').innerHTML = `<img src="${fotoBase64}">`;
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+// live carnet preview
+function updateCarnet(){
+  const nombre = document.getElementById('nombreCompleto').value || 'Nombre del jugador';
+  const nivel = document.getElementById('nivelActual').value || 'Nivel';
+  const sexo = document.getElementById('sexo').value || 'Sexo';
+  document.getElementById('carnetName').textContent = nombre;
+  document.getElementById('carnetNivel').textContent = `${nivel} — ${sexo}`;
+}
+document.getElementById('regForm').addEventListener('input', updateCarnet);
+
+// edad automática desde fecha de nacimiento
+document.getElementById('fechaNacimiento').addEventListener('change', (e)=>{
+  const dob = new Date(e.target.value);
+  if(isNaN(dob)) return;
+  const today = new Date();
+  let age = today.getFullYear()-dob.getFullYear();
+  const m = today.getMonth()-dob.getMonth();
+  if(m<0 || (m===0 && today.getDate()<dob.getDate())) age--;
+  document.getElementById('edad').value = age;
+});
+
+function submitForm(){
+  const btn = document.getElementById('btnNext');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  const data = {
+    nombreCompleto: val('nombreCompleto'),
+    cedula: val('cedula'),
+    fechaNacimiento: val('fechaNacimiento'),
+    edad: val('edad'),
+    sexo: val('sexo'),
+    whatsapp: val('whatsapp'),
+    correo: val('correo'),
+    direccion: val('direccion'),
+    contactoEmergencia: val('contactoEmergencia'),
+    parentesco: val('parentesco'),
+    telefonoEmergencia: val('telefonoEmergencia'),
+    experienciaPrevia: state.experienciaPrevia,
+    nivelActual: val('nivelActual'),
+    condicionMedica: state.condicionMedica,
+    detalleCondicionMedica: val('detalleCondicionMedica'),
+    lesionReciente: state.lesionReciente,
+    detalleLesion: val('detalleLesion'),
+    aceptaCondiciones: document.getElementById('aceptaCondiciones').checked,
+    aceptaContrato: document.getElementById('aceptaContrato').checked,
+    metodoPago: val('metodoPago'),
+    fotoBase64: fotoBase64
+  };
+
+  fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'registrarJugador', data })
+  })
+  .then(r => r.json())
+  .then(res => {
+    if(res.ok){
+      document.getElementById('carnetId').textContent = res.id;
+      document.getElementById('stepper').classList.add('hidden');
+      document.getElementById('regForm').classList.add('hidden');
+      document.getElementById('navBtns').classList.add('hidden');
+      document.getElementById('finalScreen').classList.remove('hidden');
+    } else {
+      alert('Hubo un error: ' + res.error);
+      btn.disabled = false; btn.textContent = 'Enviar inscripción';
+    }
+  })
+  .catch(err => {
+    alert('No se pudo conectar. Revisa tu internet e intenta de nuevo.');
+    btn.disabled = false; btn.textContent = 'Enviar inscripción';
+  });
+}
+
+function val(id){ return document.getElementById(id).value; }
+</script>
+</body>
+</html>

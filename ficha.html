@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ficha de emergencia — Volleyball Bulls</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0D0F14; --surface:#171B22; --surface-2:#1F242D;
+    --bull-red:#E8432A; --court-gold:#F2B441; --chalk:#F3F1EA; --mist:#8B92A0; --line:#2A303A;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--ink); color:var(--chalk); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:480px; margin:0 auto; padding:24px 18px 60px;}
+
+  .topbar{display:flex; align-items:center; gap:10px; margin-bottom:18px;}
+  .brand-mark{width:30px; height:30px; border-radius:8px; background:var(--bull-red); display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:16px; color:var(--ink); flex-shrink:0;}
+  .topbar .label{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--mist); font-weight:600;}
+
+  .id-card{
+    display:flex; gap:14px; align-items:center;
+    background:linear-gradient(135deg, var(--surface-2), var(--surface));
+    border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:16px;
+  }
+  .id-card img{width:72px; height:72px; border-radius:12px; object-fit:cover; border:1.5px solid var(--court-gold); background:var(--ink);}
+  .id-card .name{font-weight:700; font-size:18px; line-height:1.2;}
+  .id-card .meta{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--court-gold); margin-top:4px;}
+
+  .alert{
+    background:rgba(232,67,42,0.14); border:1.5px solid var(--bull-red); border-radius:14px;
+    padding:16px; margin-bottom:16px;
+  }
+  .alert .h{font-family:'Anton',sans-serif; font-size:14px; letter-spacing:.03em; text-transform:uppercase; color:var(--bull-red); margin-bottom:6px;}
+  .alert .body{font-size:14.5px; line-height:1.5;}
+
+  .call-btn{
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:14px 16px; margin-bottom:10px; text-decoration:none; color:var(--chalk);
+  }
+  .call-btn .who{font-size:13px; color:var(--mist);}
+  .call-btn .num{font-family:'JetBrains Mono',monospace; font-size:17px; font-weight:600; margin-top:2px;}
+  .call-btn .go{background:var(--bull-red); color:var(--chalk); font-weight:700; font-size:13px; padding:8px 14px; border-radius:9px; flex-shrink:0;}
+
+  .section-title{font-family:'Anton',sans-serif; font-size:15px; text-transform:uppercase; letter-spacing:.02em; margin:22px 0 10px; color:var(--mist);}
+
+  .info-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px 16px;}
+  .info-grid .k{font-size:11px; color:var(--mist); text-transform:uppercase; letter-spacing:.04em;}
+  .info-grid .v{font-size:14.5px; margin-top:2px;}
+
+  .state{text-align:center; padding:60px 20px; color:var(--mist); font-size:14.5px;}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand-mark">B</div>
+    <span class="label">Ficha de emergencia · Volleyball Bulls</span>
+  </div>
+
+  <div id="loadingState" class="state">Cargando ficha...</div>
+  <div id="errorState" class="state hidden">Este enlace no es válido. Verifica el código QR o contacta a la academia.</div>
+
+  <div id="content" class="hidden">
+    <div class="id-card">
+      <img id="foto" src="" onerror="this.style.visibility='hidden'">
+      <div>
+        <div class="name" id="nombre"></div>
+        <div class="meta" id="metaLinea"></div>
+      </div>
+    </div>
+
+    <div class="alert" id="alertBox">
+      <div class="h">Atención médica</div>
+      <div class="body" id="alertBody"></div>
+    </div>
+
+    <div class="section-title">Contacto de emergencia</div>
+    <a class="call-btn" id="callEmergencia" href="#">
+      <div>
+        <div class="who" id="parentescoTxt"></div>
+        <div class="num" id="telEmergencia"></div>
+      </div>
+      <div class="go">Llamar</div>
+    </a>
+    <a class="call-btn hidden" id="callWhatsapp" href="#">
+      <div>
+        <div class="who">WhatsApp del jugador / encargado</div>
+        <div class="num" id="whatsappTxt"></div>
+      </div>
+      <div class="go">Abrir</div>
+    </a>
+
+    <div class="section-title">Datos del jugador</div>
+    <div class="info-grid">
+      <div><div class="k">Cédula</div><div class="v" id="cedula"></div></div>
+      <div><div class="k">Edad / Sexo</div><div class="v" id="edadSexo"></div></div>
+      <div><div class="k">Nivel</div><div class="v" id="nivel"></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ⚠️ Pega aquí la misma URL de tu Apps Script publicado como "Aplicación web"
+const API_URL = "https://docs.google.com/spreadsheets/d/1-expgtY4aX2QMmwDyUrqjLS9DmQr4otE2osTCYamWoM/edit?gid=0#gid=0";
+
+const params = new URLSearchParams(window.location.search);
+const id = params.get('id');
+const token = params.get('token');
+
+if(!id || !token){
+  show('errorState');
+} else {
+  fetch(`${API_URL}?action=fichaEmergencia&id=${encodeURIComponent(id)}&token=${encodeURIComponent(token)}`)
+    .then(r => r.json())
+    .then(res => {
+      if(!res.ok){ show('errorState'); return; }
+      render(res.data);
+      show('content');
+    })
+    .catch(() => show('errorState'));
+}
+
+function show(id){
+  ['loadingState','errorState','content'].forEach(s => document.getElementById(s).classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function render(d){
+  document.getElementById('foto').src = d.fotoUrl || '';
+  document.getElementById('nombre').textContent = d.nombreCompleto || '';
+  document.getElementById('metaLinea').textContent = `${d.nivelActual || ''} · ${d.sexo || ''}`;
+  document.getElementById('cedula').textContent = d.cedula || '—';
+  document.getElementById('edadSexo').textContent = `${d.edad || '—'} · ${d.sexo || '—'}`;
+  document.getElementById('nivel').textContent = d.nivelActual || '—';
+
+  document.getElementById('parentescoTxt').textContent = `${d.contactoEmergencia || 'Contacto'} (${d.parentesco || ''})`;
+  document.getElementById('telEmergencia').textContent = d.telefonoEmergencia || '—';
+  document.getElementById('callEmergencia').href = 'tel:' + String(d.telefonoEmergencia || '').replace(/[^0-9+]/g,'');
+
+  if(d.whatsapp){
+    document.getElementById('whatsappTxt').textContent = d.whatsapp;
+    document.getElementById('callWhatsapp').href = 'https://wa.me/506' + String(d.whatsapp).replace(/[^0-9]/g,'');
+    document.getElementById('callWhatsapp').classList.remove('hidden');
+  }
+
+  const tieneCondicion = d.condicionMedica === 'Si';
+  const tieneLesion = d.lesionReciente === 'Si';
+  if(tieneCondicion || tieneLesion){
+    let body = '';
+    if(tieneCondicion) body += `<b>Condición médica:</b> ${d.detalleCondicionMedica || 'Ver con encargado.'}<br>`;
+    if(tieneLesion) body += `<b>Lesión reciente:</b> ${d.detalleLesion || 'Ver con encargado.'}`;
+    document.getElementById('alertBody').innerHTML = body;
+  } else {
+    document.getElementById('alertBox').style.borderColor = 'var(--line)';
+    document.getElementById('alertBox').style.background = 'var(--surface)';
+    document.getElementById('alertBody').textContent = 'Sin condiciones médicas ni lesiones reportadas.';
+  }
+}
+</script>
+</body>
+</html>
