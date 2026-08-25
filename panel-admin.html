@@ -132,8 +132,6 @@
       <div class="brand-title">Bulls Admin</div>
     </div>
     <div class="nav-item active" data-page="jugadores">Jugadores</div>
-    <div class="nav-item" data-page="pagos">Pagos</div>
-    <div class="nav-item" data-page="seguimiento">Seguimiento</div>
   </div>
 
   <main>
@@ -146,18 +144,6 @@
         <select id="filterPago"><option value="">Todos los pagos</option><option>Pagado</option><option>Pendiente</option></select>
       </div>
       <div id="jugadoresTableWrap" class="loading">Cargando...</div>
-    </div>
-
-    <div class="page" id="page-pagos">
-      <div class="page-title">Pagos</div>
-      <p class="page-sub">Historial de pagos registrados.</p>
-      <div id="pagosTableWrap" class="loading">Cargando...</div>
-    </div>
-
-    <div class="page" id="page-seguimiento">
-      <div class="page-title">Seguimiento</div>
-      <p class="page-sub">Notas de avance físico, técnico y asistencia.</p>
-      <div id="seguimientoTableWrap" class="loading">Cargando...</div>
     </div>
   </main>
 </div>
@@ -177,7 +163,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbzlm4WVjDgMD65MCVvzlSD9
 const FICHA_URL = "https://registro000.github.io/volleyball-bulls/ficha.html";
 
 let PASSWORD = '';
-let jugadores = [], pagos = [], seguimiento = [];
+let jugadores = [];
 
 document.getElementById('loginBtn').addEventListener('click', login);
 document.getElementById('passwordInput').addEventListener('keydown', e=>{ if(e.key==='Enter') login(); });
@@ -194,18 +180,14 @@ function login(){
 }
 
 function fetchAll(){
-  return Promise.all([
-    fetch(`${API_URL}?action=listarJugadores&password=${encodeURIComponent(PASSWORD)}`).then(r=>r.json()),
-    fetch(`${API_URL}?action=listarPagos&password=${encodeURIComponent(PASSWORD)}`).then(r=>r.json()),
-    fetch(`${API_URL}?action=listarSeguimiento&password=${encodeURIComponent(PASSWORD)}`).then(r=>r.json())
-  ]).then(([rj, rp, rs])=>{
-    if(!rj.ok) throw new Error(rj.error);
-    jugadores = rj.data; pagos = rp.data || []; seguimiento = rs.data || [];
-    renderNivelFilter();
-    renderJugadores();
-    renderPagos();
-    renderSeguimiento();
-  });
+  return fetch(`${API_URL}?action=listarJugadores&password=${encodeURIComponent(PASSWORD)}`)
+    .then(r=>r.json())
+    .then(rj=>{
+      if(!rj.ok) throw new Error(rj.error);
+      jugadores = rj.data || [];
+      renderNivelFilter();
+      renderJugadores();
+    });
 }
 
 // Navegación
@@ -259,22 +241,6 @@ function renderJugadores(){
   document.getElementById(id).addEventListener('change', renderJugadores);
 });
 
-function renderPagos(){
-  const wrap = document.getElementById('pagosTableWrap');
-  if(pagos.length===0){ wrap.innerHTML = '<div class="empty">Aún no hay pagos registrados.</div>'; return; }
-  wrap.innerHTML = `<table><thead><tr><th>Fecha</th><th>Jugador</th><th>Monto</th><th>Concepto</th><th>Método</th></tr></thead><tbody>
-    ${pagos.map(p=>`<tr><td>${fmtDate(p['Fecha'])}</td><td>${p['Nombre Jugador']||''}</td><td>₡${p['Monto']||''}</td><td>${p['Concepto']||''}</td><td>${p['Metodo']||''}</td></tr>`).join('')}
-  </tbody></table>`;
-}
-
-function renderSeguimiento(){
-  const wrap = document.getElementById('seguimientoTableWrap');
-  if(seguimiento.length===0){ wrap.innerHTML = '<div class="empty">Aún no hay notas de seguimiento.</div>'; return; }
-  wrap.innerHTML = `<table><thead><tr><th>Fecha</th><th>Jugador</th><th>Categoría</th><th>Nota</th></tr></thead><tbody>
-    ${seguimiento.map(s=>`<tr><td>${fmtDate(s['Fecha'])}</td><td>${s['Nombre Jugador']||''}</td><td>${s['Categoria']||''}</td><td>${s['Nota']||''}</td></tr>`).join('')}
-  </tbody></table>`;
-}
-
 function fmtDate(d){
   if(!d) return '';
   const date = new Date(d);
@@ -285,8 +251,6 @@ function fmtDate(d){
 function openJugador(id){
   const j = jugadores.find(x=>x['ID']===id);
   if(!j) return;
-  const pagosJ = pagos.filter(p=>p['ID Jugador']===id);
-  const segJ = seguimiento.filter(s=>s['ID Jugador']===id);
 
   document.getElementById('modalContent').innerHTML = `
     <div class="carnet-big">
@@ -316,23 +280,6 @@ function openJugador(id){
       </select>
       <button onclick="actualizarEstadoPago('${id}')">Guardar</button>
     </div>
-
-    <div class="modal-section-title">Registrar pago</div>
-    <div class="mini-form">
-      <input type="number" id="montoInput" placeholder="Monto ₡">
-      <input type="text" id="conceptoInput" placeholder="Concepto (ej. Mensualidad)">
-      <select id="metodoInput"><option>SINPE Móvil</option><option>Efectivo</option></select>
-      <button onclick="registrarPago('${id}', '${(j['Nombre Completo']||'').replace(/'/g,"")}')">Agregar</button>
-    </div>
-    ${pagosJ.map(p=>`<div class="log-item">₡${p['Monto']} — ${p['Concepto']} <div class="meta">${fmtDate(p['Fecha'])} · ${p['Metodo']}</div></div>`).join('') || '<div class="empty">Sin pagos registrados.</div>'}
-
-    <div class="modal-section-title">Seguimiento</div>
-    <div class="mini-form">
-      <select id="categoriaInput"><option>Físico</option><option>Técnico</option><option>Asistencia</option></select>
-      <input type="text" id="notaInput" placeholder="Nota de avance...">
-      <button onclick="registrarSeguimiento('${id}', '${(j['Nombre Completo']||'').replace(/'/g,"")}')">Agregar</button>
-    </div>
-    ${segJ.map(s=>`<div class="log-item">${s['Categoria']}: ${s['Nota']} <div class="meta">${fmtDate(s['Fecha'])}</div></div>`).join('') || '<div class="empty">Sin notas de seguimiento.</div>'}
   `;
   document.getElementById('modalBg').style.display = 'flex';
 }
@@ -379,21 +326,6 @@ function verCarnet(id){
 function actualizarEstadoPago(id){
   const estado = document.getElementById('estadoPagoSel').value;
   postAction('actualizarEstadoPago', { idJugador:id, estado }).then(()=>fetchAll()).then(()=>{ document.getElementById('modalBg').style.display='none'; });
-}
-
-function registrarPago(id, nombre){
-  const monto = document.getElementById('montoInput').value;
-  const concepto = document.getElementById('conceptoInput').value;
-  const metodo = document.getElementById('metodoInput').value;
-  if(!monto || !concepto) return alert('Completa monto y concepto.');
-  postAction('registrarPago', { idJugador:id, nombreJugador:nombre, monto, concepto, metodo }).then(()=>fetchAll()).then(()=>openJugador(id));
-}
-
-function registrarSeguimiento(id, nombre){
-  const categoria = document.getElementById('categoriaInput').value;
-  const nota = document.getElementById('notaInput').value;
-  if(!nota) return alert('Escribe una nota.');
-  postAction('registrarSeguimiento', { idJugador:id, nombreJugador:nombre, categoria, nota, registradoPor:'Admin' }).then(()=>fetchAll()).then(()=>openJugador(id));
 }
 
 function postAction(action, data){
